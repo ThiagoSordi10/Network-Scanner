@@ -10,6 +10,8 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install package
 pip install -r requirements.txt
 ```
 
+And install Npcap (https://nmap.org/npcap/), if in Windows, just download and install.
+
 ## Usage
 
 First, change IFACE_NAME variable with the name of your network card (```ipconfig /all``` in CMD)
