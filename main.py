@@ -20,23 +20,32 @@ dispositivos = []
 class Sniffer(Thread):
     def  __init__(self):
         super().__init__()
-
-        self.stop_sniffer = Event()
+        self._stopper = threading.Event()
 
     def run(self):
         # Faz um sniff no arp para novas conexões
-        sniff(iface=IFACE_NAME, filter="arp", prn=arp_monitor_callback, stop_filter=self.should_stop_sniffer)
+        sniff(iface=IFACE_NAME, filter="arp", prn=arp_monitor_callback, stop_filter=self.stopped)
 
     def join(self, timeout=None):
-        self.stop_sniffer.set()
+        self.stop()
         super().join(timeout)
 
-    def should_stop_sniffer(self, packet):
-        return self.stop_sniffer.isSet()
+    def stopped(self, packet):
+        return self._stopper.isSet()
+
+    def stop(self):
+        self._stopper.set()
 
 class DetectarDispositivos(Thread):
     def  __init__(self):
         super().__init__()
+        self._stopper = threading.Event()
+
+    def stopped(self):
+        return self._stopper.isSet()
+
+    def stop(self):
+        self._stopper.set()
 
     def run(self):
         # pega o ip do roteador para verificar um intervalo de ips e descobrir quem já está conectado
@@ -46,34 +55,34 @@ class DetectarDispositivos(Thread):
 
         print("### Detectando dispositivos já conectados a rede... ###")
 
-        TIMEOUT = 2
         conf.verb = 0
         for ip in range(1, 256):
+            if self.stopped():
+                break
             ether = Ether(dst="ff:ff:ff:ff:ff:ff")
             arp = ARP(pdst = without_last_part + str(ip))
             answer = srp1(ether/arp, timeout = 1, iface = IFACE_NAME)
 
             if answer:
                 adicionar_disp(answer)
-            # else:
-            #     print("Timeout waiting for %s" % without_last_part + str(ip))
 
 
         print("\n### Fim da detecção de dispositivos já conectados a rede ###")
 
     def join(self, timeout=None):
+        self.stop()
         super().join(timeout)
 
 class OfflineOnline(Thread):
     def  __init__(self):
         super().__init__()
-        self._stop = threading.Event()
-
-    def stop(self):
-        self._stop.set()
+        self._stopper = threading.Event()
 
     def stopped(self):
-        return self._stop.isSet()
+        return self._stopper.isSet()
+
+    def stop(self):
+        self._stopper.set()
 
     def run(self):
         # ping infinito entre os dispositivos para ver quem está online ou offline
@@ -82,25 +91,22 @@ class OfflineOnline(Thread):
                 ans = sr1(IP(dst=dispositivo.ip) / ICMP(), timeout=15, iface=IFACE_NAME, verbose=0)
                 if ans and dispositivo.online == False:
                     dispositivo.online = True
-                    # dispositivo.offline_contador = 0
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("\n[UPDATE] Dispositivo online:")
                     print(dispositivo)
                     print("[END UPDATE]")
                     exibir_dispositivos()
                 elif dispositivo.online == True:
-                    # if dispositivo.offline_contador > 3:
                     dispositivo.online = False
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("\n[UPDATE] Dispositivo offline:")
                     print(dispositivo)
                     print("[END UPDATE]")
                     exibir_dispositivos()
-                    # else:
-                        # dispositivo.offline_contador += 1
 
 
     def join(self, timeout=None):
+        self.stop()
         super().join(timeout)
 
 
@@ -116,7 +122,6 @@ class Dispositivo():
             self.fabricante = None
         self.roteador = True if conf.route.route("0.0.0.0")[2] == ip else False # conf.route.route("0.0.0.0")[2] -> pegar ip do roteador
         self.online = True
-        self.offline_contador = 0
         self.primeira_descoberta = datetime.now()
 
     def __str__(self):
@@ -137,9 +142,7 @@ def adicionar_disp(pkt):
         if(dispositivo_ja_descoberto(pkt[Ether].src) is not True):
             os.system('cls' if os.name == 'nt' else 'clear')
             print("\n[UPDATE] Novo dispositivo descoberto com mac: "+pkt[Ether].src)
-            # exibir_menu()
             dispositivos.append(Dispositivo(pkt[ARP].psrc, pkt[Ether].src))
-            # dispositivos = sorted(dispositivos, key=lambda item: (item['online']) )
             exibir_dispositivos()
             return True
 
@@ -147,11 +150,11 @@ def adicionar_disp(pkt):
 def arp_monitor_callback(pkt):
     if ARP in pkt and pkt[ARP].op in (1,2): #who-has ou is-at
         adicionar_disp(pkt)
-            # return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 
 def exibir_dispositivos():
+    dispositivos_ordenados = sorted(dispositivos, key=lambda item: (item.online))
     print("\n##Lista de dispositivos conectados na rede##")
-    for dispositivo in dispositivos:
+    for dispositivo in dispositivos_ordenados:
         print(dispositivo)
     print("#####")
 
@@ -170,7 +173,7 @@ try:
         sleep(100)
 
 except KeyboardInterrupt:
-    print("\n[*] Parando detecção")
-    detector.join()
-    sniffer_arp.join()
+    print("\n[*] Parando detecção.....")
     offline_online.join()
+    sniffer_arp.join()
+    detector.join()
