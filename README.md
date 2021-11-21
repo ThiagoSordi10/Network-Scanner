@@ -30,6 +30,14 @@ Then, you could use just running.
 python main.py
 ```
 
+## Running
+
+The code execute 3 threads: To sniff ARP packets of devices connecting on the network (nonstop), to detect devices on the network testing a range of IP's (just one time), to ping the already discovered devices and see who is offline or online (nonstop).
+
+The detection of the devices on the network through range of IP's may take a while.
+
+The prints are: New devices, devices that went offline and the list of devices with their infos.
+
 ## Authors
 <a href="https://github.com/GuilhermePretto">Guilherme Pretto</a>, <a href="https://github.com/smfinkler">Samuel Finkler</a>, Thiago Sordi
 
