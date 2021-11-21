@@ -79,25 +79,25 @@ class OfflineOnline(Thread):
         # ping infinito entre os dispositivos para ver quem está online ou offline
         while not self.stopped():
             for dispositivo in dispositivos:
-                ans = sr1(IP(dst=dispositivo.ip) / ICMP(), timeout=2, iface=IFACE_NAME, verbose=0)
-                if ans:
+                ans = sr1(IP(dst=dispositivo.ip) / ICMP(), timeout=15, iface=IFACE_NAME, verbose=0)
+                if ans and dispositivo.online == False:
                     dispositivo.online = True
-                    dispositivo.offline_contador = 0
+                    # dispositivo.offline_contador = 0
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("\n[UPDATE] Dispositivo online:")
                     print(dispositivo)
                     print("[END UPDATE]")
                     exibir_dispositivos()
                 elif dispositivo.online == True:
-                    if dispositivo.offline_contador > 3:
-                        dispositivo.online = False
-                        os.system('cls' if os.name == 'nt' else 'clear')
-                        print("\n[UPDATE] Dispositivo offline:")
-                        print(dispositivo)
-                        print("[END UPDATE]")
-                        exibir_dispositivos()
-                    else:
-                        dispositivo.offline_contador += 1
+                    # if dispositivo.offline_contador > 3:
+                    dispositivo.online = False
+                    os.system('cls' if os.name == 'nt' else 'clear')
+                    print("\n[UPDATE] Dispositivo offline:")
+                    print(dispositivo)
+                    print("[END UPDATE]")
+                    exibir_dispositivos()
+                    # else:
+                        # dispositivo.offline_contador += 1
 
 
     def join(self, timeout=None):
