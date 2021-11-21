@@ -87,6 +87,10 @@ class OfflineOnline(Thread):
                     print("\n[UPDATE] Dispositivo offline:")
                     print(dispositivo)
                     print("[END UPDATE]")
+                    print("\n##Lista de dispositivos conectados na rede##")
+                    for dispositivo in dispositivos:
+                        print(dispositivo)
+                    print("#####")
 
     def join(self, timeout=None):
         super().join(timeout)
