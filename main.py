@@ -82,18 +82,23 @@ class OfflineOnline(Thread):
                 ans = sr1(IP(dst=dispositivo.ip) / ICMP(), timeout=2, iface=IFACE_NAME, verbose=0)
                 if ans:
                     dispositivo.online = True
+                    dispositivo.offline_contador = 0
                     os.system('cls' if os.name == 'nt' else 'clear')
                     print("\n[UPDATE] Dispositivo online:")
                     print(dispositivo)
                     print("[END UPDATE]")
                     exibir_dispositivos()
                 elif dispositivo.online == True:
-                    dispositivo.online = False
-                    os.system('cls' if os.name == 'nt' else 'clear')
-                    print("\n[UPDATE] Dispositivo offline:")
-                    print(dispositivo)
-                    print("[END UPDATE]")
-                    exibir_dispositivos()
+                    if dispositivo.offline_contador > 3:
+                        dispositivo.online = False
+                        os.system('cls' if os.name == 'nt' else 'clear')
+                        print("\n[UPDATE] Dispositivo offline:")
+                        print(dispositivo)
+                        print("[END UPDATE]")
+                        exibir_dispositivos()
+                    else:
+                        dispositivo.offline_contador += 1
+
 
     def join(self, timeout=None):
         super().join(timeout)
@@ -111,6 +116,7 @@ class Dispositivo():
             self.fabricante = None
         self.roteador = True if conf.route.route("0.0.0.0")[2] == ip else False # conf.route.route("0.0.0.0")[2] -> pegar ip do roteador
         self.online = True
+        self.offline_contador = 0
         self.primeira_descoberta = datetime.now()
 
     def __str__(self):
