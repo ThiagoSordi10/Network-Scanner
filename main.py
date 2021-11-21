@@ -82,15 +82,18 @@ class OfflineOnline(Thread):
                 ans = sr1(IP(dst=dispositivo.ip) / ICMP(), timeout=2, iface=IFACE_NAME, verbose=0)
                 if ans:
                     dispositivo.online = True
+                    os.system('cls' if os.name == 'nt' else 'clear')
+                    print("\n[UPDATE] Dispositivo online:")
+                    print(dispositivo)
+                    print("[END UPDATE]")
+                    exibir_dispositivos()
                 elif dispositivo.online == True:
                     dispositivo.online = False
+                    os.system('cls' if os.name == 'nt' else 'clear')
                     print("\n[UPDATE] Dispositivo offline:")
                     print(dispositivo)
                     print("[END UPDATE]")
-                    print("\n##Lista de dispositivos conectados na rede##")
-                    for dispositivo in dispositivos:
-                        print(dispositivo)
-                    print("#####")
+                    exibir_dispositivos()
 
     def join(self, timeout=None):
         super().join(timeout)
@@ -131,10 +134,7 @@ def adicionar_disp(pkt):
             # exibir_menu()
             dispositivos.append(Dispositivo(pkt[ARP].psrc, pkt[Ether].src))
             # dispositivos = sorted(dispositivos, key=lambda item: (item['online']) )
-            print("\n##Lista de dispositivos conectados na rede##")
-            for dispositivo in dispositivos:
-                print(dispositivo)
-            print("#####")
+            exibir_dispositivos()
             return True
 
 
@@ -143,22 +143,11 @@ def arp_monitor_callback(pkt):
         adicionar_disp(pkt)
             # return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 
-def exibir_menu():
-    print("\nMenu de opções")
-    print("1) Exibir lista de todos dispositivos descobertos")
-    print("2) Exibir lista de dispositivos online")
-    opt = input("Digite a opção: ")
-    if(opt == "1"):
-        print("\n##Lista de dispositivos conectados na rede##")
-        for dispositivo in dispositivos:
-            print(dispositivo)
-        print("#####")
-    elif(opt == "2"):
-        print("\n##Lista de dispositivos online conectados na rede##")
-        for dispositivo in dispositivos:
-            if(dispositivo.online):
-                print(dispositivo)
-        print("#####\n")
+def exibir_dispositivos():
+    print("\n##Lista de dispositivos conectados na rede##")
+    for dispositivo in dispositivos:
+        print(dispositivo)
+    print("#####")
 
 sniffer_arp = Sniffer()
 offline_online = OfflineOnline()
