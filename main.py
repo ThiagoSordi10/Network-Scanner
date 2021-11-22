@@ -152,7 +152,7 @@ def arp_monitor_callback(pkt):
         adicionar_disp(pkt)
 
 def exibir_dispositivos():
-    dispositivos_ordenados = sorted(dispositivos, key=lambda item: (item.online))
+    dispositivos_ordenados = sorted(dispositivos, key=lambda item: (item.online), reverse=True)
     print("\n##Lista de dispositivos conectados na rede##")
     for dispositivo in dispositivos_ordenados:
         print(dispositivo)
