@@ -36,7 +36,7 @@ The code execute 3 threads: To sniff ARP packets of devices connecting on the ne
 
 The detection of the devices on the network through range of IP's may take a while.
 
-The prints are: New devices, devices that went offline and the list of devices with their infos.
+The prints are: New devices, devices that became offline and the list of devices with their infos.
 
 ## Authors
 <a href="https://github.com/GuilhermePretto">Guilherme Pretto</a>, <a href="https://github.com/smfinkler">Samuel Finkler</a>, Thiago Sordi
